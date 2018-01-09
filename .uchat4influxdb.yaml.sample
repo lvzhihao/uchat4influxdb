@@ -1,0 +1,29 @@
+# version 2 config
+global_consumer_flag: hostname.uchat4mq
+
+# rabbitmq config
+receive_rabbitmq: &receive_rabbitmq
+  host: 10.10.10.10:5672
+  api: http://10.10.10.10:15672/api
+  user: user
+  passwd: passwd
+  vhost: vhost
+
+target_influxdb: &target_influxdb
+  host: 127.0.0.1:8066
+  user: test
+  passwd: test 
+
+# message queue config
+message_config:
+  consumer:
+    conn: *receive_rabbitmq
+    queue: 
+      name: queue_name
+      bindlist: 
+      - exchange: exchange_name 
+        key: routing_key 
+        arguments: {}
+  influxdb:
+    conn: *target_influxdb
+    db: test
