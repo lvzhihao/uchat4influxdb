@@ -22,10 +22,10 @@ package cmd
 
 import (
 	"encoding/json"
-	"strings"
 	"unicode/utf8"
 
 	rmqtool "github.com/lvzhihao/go-rmqtool"
+	"github.com/lvzhihao/goutils"
 	"github.com/lvzhihao/uchat4influxdb/stats"
 	"github.com/lvzhihao/uchatlib"
 	"github.com/spf13/cobra"
@@ -73,10 +73,9 @@ var messageCmd = &cobra.Command{
 			} else {
 				tags := make(map[string]string, 0)
 				fields := make(map[string]interface{}, 0)
-				keys := strings.Split(msg.RoutingKey, ".")
-				tags["chat"] = keys[3]
-				tags["type"] = keys[4]
-				tags["user"] = keys[5]
+				tags["chat"] = rst.ChatRoomSerialNo
+				tags["type"] = goutils.ToString(rst.MsgType)
+				tags["user"] = rst.WxUserSerialNo
 				//log.Fatal(tags)
 				fields["length"] = 0
 				// 如果是文本信息，则统计长度
