@@ -1,0 +1,14 @@
+version: '3'
+services:
+  message:
+    image: edwinlll/uchat4influxdb:latest
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+      - DEBUG=true
+    volumes:
+      - ./.uchat4influxdb.yaml:/go/src/github.com/lvzhihao/uchat4influxdb/.uchat4influxdb.yaml
+    command: >
+      sh -c "ln -snf /usr/share/zoneinfo/$${TZ} /etc/localtime && 
+      echo $${TZ} > /etc/timezone &&
+      go-wrapper run message"

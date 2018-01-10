@@ -21,36 +21,78 @@
 package cmd
 
 import (
-	"fmt"
+	"encoding/json"
+	"strings"
+	"unicode/utf8"
 
+	rmqtool "github.com/lvzhihao/go-rmqtool"
+	"github.com/lvzhihao/uchat4influxdb/stats"
+	"github.com/lvzhihao/uchatlib"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"github.com/streadway/amqp"
+	"go.uber.org/zap"
 )
 
 // messageCmd represents the message command
 var messageCmd = &cobra.Command{
-	Use:   "message",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Use:   "message 4 influxdb",
+	Short: "message",
+	Long:  `message for influxdb`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("message called")
+		logger := GetLogger()
+		defer logger.Sync()
+		// rmqtool config
+		rmqtool.DefaultConsumerToolName = viper.GetString("global_consumer_flag")
+		rmqtool.Log.Set(GetZapLoggerWrapperForRmqtool(logger))
+		//rmqtool.Log.Debug("logger warpper demo", "no key param", zap.Any("ccc", time.Now()), zap.Any("dddd", []string{"xx"}), "no key param again", zap.Error(errors.New("xx")))
+		// load config
+		config, err := LoadConfig("message_config")
+		if err != nil {
+			logger.Fatal("load config error", zap.Error(err))
+		}
+		logger.Debug("load message config success", zap.Any("config", config))
+
+		queue, err := config.ConsumerQueue()
+		if err != nil {
+			logger.Fatal("migrate message_queue error", zap.Error(err))
+		}
+
+		influx, err := config.InfluxdbClient()
+		if err != nil {
+			logger.Fatal("call message_target_influxdb error", zap.Error(err))
+		}
+		defer influx.Close()
+
+		queue.Consume(1, func(msg amqp.Delivery) {
+			var rst uchatlib.UchatMessage
+			err := json.Unmarshal(msg.Body, &rst)
+			if err != nil {
+				msg.Ack(false) //先消费掉，避免队列堵塞
+				rmqtool.Log.Error("process error", zap.Error(err), zap.Any("msg", msg))
+			} else {
+				tags := make(map[string]string, 0)
+				fields := make(map[string]interface{}, 0)
+				keys := strings.Split(msg.RoutingKey, ".")
+				tags["chat"] = keys[3]
+				tags["type"] = keys[4]
+				tags["user"] = keys[5]
+				//log.Fatal(tags)
+				fields["length"] = 0
+				// 如果是文本信息，则统计长度
+				if rst.MsgType == 2001 {
+					fields["length"] = utf8.RuneCountInString(rst.Content)
+				}
+				err := stats.WriteMessage(influx, config.Influxdb.Db, tags, fields, rst.MsgTime)
+				if err != nil {
+					logger.Error("write influxdb error", zap.Error(err))
+				}
+				msg.Ack(false)
+			}
+		}) //尽量保证聊天记录的时序，以api回调接口收到消息进入receive队列为准
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(messageCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// messageCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// messageCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
