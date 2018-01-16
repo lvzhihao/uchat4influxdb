@@ -11,4 +11,4 @@ services:
     command: >
       sh -c "ln -snf /usr/share/zoneinfo/$${TZ} /etc/localtime && 
       echo $${TZ} > /etc/timezone &&
-      cd /root && uchat4influxdb message"
+      uchat4influxdb message"
