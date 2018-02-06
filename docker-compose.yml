@@ -12,3 +12,27 @@ services:
       sh -c "ln -snf /usr/share/zoneinfo/$${TZ} /etc/localtime && 
       echo $${TZ} > /etc/timezone &&
       uchat4influxdb message"
+  member_join:
+    image: edwinlll/uchat4influxdb:latest
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+      - DEBUG=true
+    volumes:
+      - ./.uchat4influxdb.yaml:/usr/local/uchat4influxdb/.uchat4influxdb.yaml
+    command: >
+      sh -c "ln -snf /usr/share/zoneinfo/$${TZ} /etc/localtime && 
+      echo $${TZ} > /etc/timezone &&
+      uchat4influxdb member_join"
+  member_quit:
+    image: edwinlll/uchat4influxdb:latest
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+      - DEBUG=true
+    volumes:
+      - ./.uchat4influxdb.yaml:/usr/local/uchat4influxdb/.uchat4influxdb.yaml
+    command: >
+      sh -c "ln -snf /usr/share/zoneinfo/$${TZ} /etc/localtime && 
+      echo $${TZ} > /etc/timezone &&
+      uchat4influxdb member_quit"
