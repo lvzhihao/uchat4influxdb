@@ -73,8 +73,20 @@ var memberQuitCmd = &cobra.Command{
 				fields := make(map[string]interface{}, 0)
 				tags["room"] = rst.ChatRoomSerialNo
 				tags["user"] = rst.WxUserSerialNo
+				// extra tags start
+				robotChatRoom, err := ExtraRobotChatRoom(rst.ExtraData)
+				if err == nil {
+					if robotChatRoom != nil && robotChatRoom.MyId != "" {
+						tags["my_id"] = robotChatRoom.MyId
+					}
+					if robotChatRoom != nil && robotChatRoom.SubId != "" {
+						tags["sub_id"] = robotChatRoom.SubId
+					}
+				}
+				//log.Fatal(tags)
+				// extra tags end
 				fields["count"] = 1
-				err := stats.WriteMemberQuit(influx, config.Influxdb.Db, tags, fields, rst.QuitDate)
+				err = stats.WriteMemberQuit(influx, config.Influxdb.Db, tags, fields, rst.QuitDate)
 				if err != nil {
 					logger.Error("write influxdb error", zap.Error(err))
 				}

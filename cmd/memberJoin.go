@@ -76,8 +76,20 @@ var memberJoinCmd = &cobra.Command{
 				tags["user"] = rst.WxUserSerialNo
 				tags["father"] = rst.FatherWxUserSerialNo
 				tags["type"] = goutils.ToString(rst.JoinChatRoomType)
+				// extra tags start
+				robotChatRoom, err := ExtraRobotChatRoom(rst.ExtraData)
+				if err == nil {
+					if robotChatRoom != nil && robotChatRoom.MyId != "" {
+						tags["my_id"] = robotChatRoom.MyId
+					}
+					if robotChatRoom != nil && robotChatRoom.SubId != "" {
+						tags["sub_id"] = robotChatRoom.SubId
+					}
+				}
+				//log.Fatal(tags)
+				// extra tags end
 				fields["count"] = 1
-				err := stats.WriteMemberJoin(influx, config.Influxdb.Db, tags, fields, rst.JoinDate)
+				err = stats.WriteMemberJoin(influx, config.Influxdb.Db, tags, fields, rst.JoinDate)
 				if err != nil {
 					logger.Error("write influxdb error", zap.Error(err))
 				}

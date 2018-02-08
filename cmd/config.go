@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -10,6 +11,7 @@ import (
 
 	client "github.com/influxdata/influxdb/client/v2"
 	rmqtool "github.com/lvzhihao/go-rmqtool"
+	"github.com/lvzhihao/zhiya/models"
 	"github.com/spf13/viper"
 )
 
@@ -146,4 +148,25 @@ func (c *Config) PublisherExchange() string {
 
 func (c *Config) PublisherKey() string {
 	return c.Publisher.Key
+}
+
+func ExtraRobotChatRoom(input interface{}) (*models.RobotChatRoom, error) {
+	switch input.(type) {
+	case map[string]interface{}:
+		data := input.(map[string]interface{})
+		if v, ok := data["robotChatRoomModel"]; ok {
+			b, err := json.Marshal(v)
+			if err != nil {
+				return nil, err
+			} else {
+				var robotChatRoom models.RobotChatRoom
+				err := json.Unmarshal(b, &robotChatRoom)
+				return &robotChatRoom, err
+			}
+		} else {
+			return nil, fmt.Errorf("not found")
+		}
+	default:
+		return nil, fmt.Errorf("extra not map")
+	}
 }

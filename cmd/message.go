@@ -77,12 +77,24 @@ var messageCmd = &cobra.Command{
 				tags["type"] = goutils.ToString(rst.MsgType)
 				tags["user"] = rst.WxUserSerialNo
 				//log.Fatal(tags)
+				// extra tags start
+				robotChatRoom, err := ExtraRobotChatRoom(rst.ExtraData)
+				if err == nil {
+					if robotChatRoom != nil && robotChatRoom.MyId != "" {
+						tags["my_id"] = robotChatRoom.MyId
+					}
+					if robotChatRoom != nil && robotChatRoom.SubId != "" {
+						tags["sub_id"] = robotChatRoom.SubId
+					}
+				}
+				//log.Fatal(tags)
+				// extra tags end
 				fields["length"] = 0
 				// 如果是文本信息，则统计长度
 				if rst.MsgType == 2001 {
 					fields["length"] = utf8.RuneCountInString(rst.Content)
 				}
-				err := stats.WriteMessage(influx, config.Influxdb.Db, tags, fields, rst.MsgTime)
+				err = stats.WriteMessage(influx, config.Influxdb.Db, tags, fields, rst.MsgTime)
 				if err != nil {
 					logger.Error("write influxdb error", zap.Error(err))
 				}
