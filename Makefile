@@ -24,3 +24,8 @@ docker-uhub:
 	sudo docker tag edwinlll/uchat4influxdb:latest uhub.service.ucloud.cn/mmzs/uchat4influxdb:latest
 	sudo docker push uhub.service.ucloud.cn/mmzs/uchat4influxdb:latest
 	sudo docker rmi uhub.service.ucloud.cn/mmzs/uchat4influxdb:latest
+
+docker-ali:
+	sudo docker tag edwinlll/uchat4influxdb:latest registry.cn-hangzhou.aliyuncs.com/weishangye/uchat4influxdb:latest
+	sudo docker push registry.cn-hangzhou.aliyuncs.com/weishangye/uchat4influxdb:latest
+	sudo docker rmi registry.cn-hangzhou.aliyuncs.com/weishangye/uchat4influxdb:latest
