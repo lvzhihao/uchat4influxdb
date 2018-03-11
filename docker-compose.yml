@@ -17,7 +17,7 @@ services:
       - DEBUG=true
     volumes:
       - ./.uchat4influxdb.yaml:/usr/local/uchat4influxdb/.uchat4influxdb.yaml
-    command: ["memeber_join"]
+    command: ["member_join"]
   member_quit:
     image: edwinlll/uchat4influxdb:latest
     restart: always
@@ -26,4 +26,4 @@ services:
       - DEBUG=true
     volumes:
       - ./.uchat4influxdb.yaml:/usr/local/uchat4influxdb/.uchat4influxdb.yaml
-    command: ["memeber_quit"]
+    command: ["member_quit"]
